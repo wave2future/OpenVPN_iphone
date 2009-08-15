@@ -1,0 +1,24 @@
+This is a source repo for OpenVPN patched to work on the iPhone.
+
+Right now this is *just* a patch. I will add to it later.
+
+My patch is based on Friedrich Schoeller's work found at http://code.gerade.org/tunemu/
+
+All I've done, is make the autoconf magic work.
+
+
+YMMV... no promises and all that stuff.
+
+
+Roughly, heres what you do to get it to build:
+
+- get your dependencies in order... you'll need openssl, libpcap, maybe lzo if you use that.
+- download openvpn_2.1rc19 from openvpn.net
+- unpack
+- apply openvpn_tunemu.diff
+- configure
+- make
+
+You should end up with an openvpn binary.
+
+-jfx
