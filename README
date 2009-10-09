@@ -4,7 +4,11 @@ Right now this is *just* a patch. I will add to it later.
 
 My patch is based on Friedrich Schoeller's work found at http://code.gerade.org/tunemu/
 
-All I've done, is make the autoconf magic work.
+This version tries to play nicer with the original OpenVPN code. It should still build
+a non iphone binary, but this is not tested.
+
+Changelog:
+- no longer necessary to use --enable-tunemu with configure
 
 
 YMMV... no promises and all that stuff.
@@ -13,12 +17,21 @@ YMMV... no promises and all that stuff.
 Roughly, heres what you do to get it to build:
 
 - get your dependencies in order... you'll need openssl, libpcap, maybe lzo if you use that.
-- download openvpn_2.1rc19 from openvpn.net
+- download openvpn_2.1rc20 from openvpn.net
 - unpack
 - apply openvpn_tunemu.diff
 - configure
 - make
 
-You should end up with an openvpn binary.
+You should end up with an openvpn binary. You'll want to strip it and run ldid -S against it.
+
+Here's *my* configure line... yours will likely vary slightly....
+
+  $ ./configure --host=arm-apple-darwin9 --disable-server --disable-pkcs11 \
+--disable-http --disable-port-share --disable-plugins --disable-socks \
+--with-lzo-headers=../../lzo/lzo-2.03/include/ --with-lzo-lib=../../lzo/lzo-2.03/src/.libs/ \
+--with-ssl-headers=../../openssl/include/ --with-ssl-lib=../../openssl/lib/ \
+--with-pcap-headers=../../pcap/include/ --with-pcap-lib=../../pcap/lib/
+
 
 -jfx

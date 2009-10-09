@@ -1,20 +1,7 @@
-diff -Naur openvpn-2.1_rc19/configure.ac openvpn-2.1_rc19-tunemu/configure.ac
---- openvpn-2.1_rc19/configure.ac	2009-06-09 03:59:49.000000000 -0700
-+++ openvpn-2.1_rc19-tunemu/configure.ac	2009-08-14 18:36:04.000000000 -0700
-@@ -194,6 +194,12 @@
-    [STRICT_OPTIONS="no"]
- )
- 
-+AC_ARG_ENABLE(tunemu,
-+   [ --enable-tunemu Enable tunemu tun device emulation (for iPhone -- will also include libpcap)],
-+   [TUNEMU="$enableval"],
-+   [TUNEMU="no"]
-+)
-+
- AC_ARG_WITH(ssl-headers,
-    [  --with-ssl-headers=DIR  Crypto/SSL Include files location],
-    [CS_HDR_DIR="$withval"]
-@@ -227,6 +233,17 @@
+diff -Naur openvpn-2.1_rc20/configure.ac openvpn-2.1_rc20.jfx1/configure.ac
+--- openvpn-2.1_rc20/configure.ac	2009-10-01 11:02:18.000000000 -0700
++++ openvpn-2.1_rc20.jfx1/configure.ac	2009-10-08 17:33:48.000000000 -0700
+@@ -245,6 +245,17 @@
     [LDFLAGS="$LDFLAGS -L$withval"] 
  )
  
@@ -32,7 +19,21 @@ diff -Naur openvpn-2.1_rc19/configure.ac openvpn-2.1_rc19-tunemu/configure.ac
  AC_ARG_WITH(ifconfig-path,
     [  --with-ifconfig-path=PATH   Path to ifconfig tool],
     [IFCONFIG="$withval"],
-@@ -674,6 +691,24 @@
+@@ -305,6 +316,13 @@
+ 	dnl some Mac OS X tendering (we use vararg macros...)
+ 	AC_DEFINE(TARGET_DARWIN, 1, [Are we running on Mac OS X?])
+ 	CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
++	case "$target" in
++		arm*)
++			dnl iPhone?
++			AC_DEFINE(USE_TUNEMU, 1, [Enable tunemu])
++			TUNEMU="yes"
++			;;
++	esac
+ 	;;
+ *mingw*)
+ 	AC_DEFINE(TARGET_WIN32, 1, [Are we running WIN32?])
+@@ -692,6 +710,24 @@
  fi
  
  dnl
@@ -57,10 +58,10 @@ diff -Naur openvpn-2.1_rc19/configure.ac openvpn-2.1_rc19-tunemu/configure.ac
  dnl check for OpenSSL-crypto library
  dnl
  
-diff -Naur openvpn-2.1_rc19/Makefile.am openvpn-2.1_rc19-tunemu/Makefile.am
---- openvpn-2.1_rc19/Makefile.am	2009-05-30 14:34:12.000000000 -0700
-+++ openvpn-2.1_rc19-tunemu/Makefile.am	2009-08-14 18:36:04.000000000 -0700
-@@ -137,7 +137,8 @@
+diff -Naur openvpn-2.1_rc20/Makefile.am openvpn-2.1_rc20.jfx1/Makefile.am
+--- openvpn-2.1_rc20/Makefile.am	2009-10-07 04:11:01.000000000 -0700
++++ openvpn-2.1_rc20.jfx1/Makefile.am	2009-10-08 17:31:21.000000000 -0700
+@@ -138,7 +138,8 @@
  	thread.c thread.h \
  	tun.c tun.h \
  	win32.h win32.c \
@@ -70,9 +71,9 @@ diff -Naur openvpn-2.1_rc19/Makefile.am openvpn-2.1_rc19-tunemu/Makefile.am
  
  
  dist-hook:
-diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
---- openvpn-2.1_rc19/tun.c	2009-05-30 14:34:13.000000000 -0700
-+++ openvpn-2.1_rc19-tunemu/tun.c	2009-08-14 18:25:21.000000000 -0700
+diff -Naur openvpn-2.1_rc20/tun.c openvpn-2.1_rc20.jfx1/tun.c
+--- openvpn-2.1_rc20/tun.c	2009-10-01 11:02:18.000000000 -0700
++++ openvpn-2.1_rc20.jfx1/tun.c	2009-10-08 17:31:22.000000000 -0700
 @@ -43,6 +43,10 @@
  
  #include "memdbg.h"
@@ -84,7 +85,7 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
  #ifdef WIN32
  
  /* #define SIMULATE_DHCP_FAILED */       /* simulate bad DHCP negotiation */
-@@ -1000,6 +1004,19 @@
+@@ -999,6 +1003,19 @@
  	   */
  	  if (dynamic && !has_digit((unsigned char *)dev))
  	    {
@@ -104,7 +105,7 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
  	      int i;
  	      for (i = 0; i < 256; ++i)
  		{
-@@ -1014,6 +1031,7 @@
+@@ -1013,6 +1030,7 @@
  		    }
  		  msg (D_READ_WRITE | M_ERRNO, "Tried opening %s (failed)", tunname);
  		}
@@ -112,7 +113,7 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
  	      if (!dynamic_opened)
  		msg (M_FATAL, "Cannot allocate TUN/TAP dev dynamically");
  	    }
-@@ -1028,8 +1046,12 @@
+@@ -1027,8 +1045,12 @@
  
        if (!dynamic_opened)
  	{
@@ -125,7 +126,7 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
  	}
  
        set_nonblock (tt->fd);
-@@ -1045,7 +1067,11 @@
+@@ -1044,7 +1066,11 @@
  close_tun_generic (struct tuntap *tt)
  {
    if (tt->fd >= 0)
@@ -137,7 +138,7 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
    if (tt->actual_name)
      free (tt->actual_name);
    clear_tuntap (tt);
-@@ -4361,13 +4387,21 @@
+@@ -4365,13 +4391,21 @@
  int
  write_tun (struct tuntap* tt, uint8_t *buf, int len)
  {
@@ -159,10 +160,10 @@ diff -Naur openvpn-2.1_rc19/tun.c openvpn-2.1_rc19-tunemu/tun.c
  }
  
  #endif
-diff -Naur openvpn-2.1_rc19/tunemu.c openvpn-2.1_rc19-tunemu/tunemu.c
---- openvpn-2.1_rc19/tunemu.c	1969-12-31 16:00:00.000000000 -0800
-+++ openvpn-2.1_rc19-tunemu/tunemu.c	2009-08-03 10:36:37.000000000 -0700
-@@ -0,0 +1,386 @@
+diff -Naur openvpn-2.1_rc20/tunemu.c openvpn-2.1_rc20.jfx1/tunemu.c
+--- openvpn-2.1_rc20/tunemu.c	1969-12-31 16:00:00.000000000 -0800
++++ openvpn-2.1_rc20.jfx1/tunemu.c	2009-10-08 17:36:22.000000000 -0700
+@@ -0,0 +1,392 @@
 +/*
 + *  tunemu - Tun device emulation for Darwin
 + *  Copyright (C) 2009 Friedrich Schöller <friedrich.schoeller@gmail.com>
@@ -181,6 +182,10 @@ diff -Naur openvpn-2.1_rc19/tunemu.c openvpn-2.1_rc19-tunemu/tunemu.c
 + *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 + *  
 + */
++
++#include "config.h"
++
++#ifdef USE_TUNEMU
 +
 +#include "tunemu.h"
 +
@@ -549,10 +554,12 @@ diff -Naur openvpn-2.1_rc19/tunemu.c openvpn-2.1_rc19-tunemu/tunemu.c
 +
 +	return length;
 +}
-diff -Naur openvpn-2.1_rc19/tunemu.h openvpn-2.1_rc19-tunemu/tunemu.h
---- openvpn-2.1_rc19/tunemu.h	1969-12-31 16:00:00.000000000 -0800
-+++ openvpn-2.1_rc19-tunemu/tunemu.h	2009-08-03 10:36:37.000000000 -0700
-@@ -0,0 +1,32 @@
++
++#endif    /* USE_TUNEMU */
+diff -Naur openvpn-2.1_rc20/tunemu.h openvpn-2.1_rc20.jfx1/tunemu.h
+--- openvpn-2.1_rc20/tunemu.h	1969-12-31 16:00:00.000000000 -0800
++++ openvpn-2.1_rc20.jfx1/tunemu.h	2009-10-08 17:36:40.000000000 -0700
+@@ -0,0 +1,36 @@
 +/*
 + *  tunemu - Tun device emulation for Darwin
 + *  Copyright (C) 2009 Friedrich Schöller <friedrich.schoeller@gmail.com>
@@ -572,6 +579,8 @@ diff -Naur openvpn-2.1_rc19/tunemu.h openvpn-2.1_rc19-tunemu/tunemu.h
 + *  
 + */
 +
++#ifdef USE_TUNEMU
++
 +#ifndef TUNEMU_H
 +#define TUNEMU_H
 +
@@ -585,13 +594,15 @@ diff -Naur openvpn-2.1_rc19/tunemu.h openvpn-2.1_rc19-tunemu/tunemu.h
 +int tunemu_write(int fd, char *buffer, int length);
 +
 +#endif
-diff -Naur openvpn-2.1_rc19/version.m4 openvpn-2.1_rc19-tunemu/version.m4
---- openvpn-2.1_rc19/version.m4	2009-07-16 02:13:42.000000000 -0700
-+++ openvpn-2.1_rc19-tunemu/version.m4	2009-08-14 18:38:49.000000000 -0700
++
++#endif    /* USE_TUNEMU */
+diff -Naur openvpn-2.1_rc20/version.m4 openvpn-2.1_rc20.jfx1/version.m4
+--- openvpn-2.1_rc20/version.m4	2009-10-01 11:37:48.000000000 -0700
++++ openvpn-2.1_rc20.jfx1/version.m4	2009-10-08 17:31:37.000000000 -0700
 @@ -1,5 +1,5 @@
  dnl define the OpenVPN version
--define(PRODUCT_VERSION,[2.1_rc19])
-+define(PRODUCT_VERSION,[2.1_rc19_jfx])
+-define(PRODUCT_VERSION,[2.1_rc20])
++define(PRODUCT_VERSION,[2.1_rc20_jfx1])
  dnl define the TAP version
  define(PRODUCT_TAP_ID,[tap0901])
  define(PRODUCT_TAP_WIN32_MIN_MAJOR,[9])
